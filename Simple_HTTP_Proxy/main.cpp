@@ -48,15 +48,9 @@ int main(int argc, char* argv[])
 	cout << "Message sent: " << endl << message;
 	send(sd, message.c_str(), message.length(), 0);
 	int bytes = 0;
-	if ((bytes = recv(sd, recvbuffer, 1048576, 0)) <= 0)
-	{
-		printf("No data received from proxy, exiting.\n");
-		exit(1);
-	}
-	else
-	{
-		string recvd(recvbuffer, bytes);
-		cout << recvd << endl;
-	}
+	bytes = recv(sd, recvbuffer, 1048576, 0)
+	string recvd(recvbuffer, bytes);
+	cout << recvd << endl;
+	
 	return 0;
 }
