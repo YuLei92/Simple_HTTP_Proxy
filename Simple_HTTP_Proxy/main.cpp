@@ -1,43 +1,62 @@
+#include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <sys/socket.h>
-#include <syslog.h>
-#include <unistd.h>
+#include <sys/types.h>
+#include <netinet/in.h>
+#include <string.h>
+#include <netdb.h>
 #include <arpa/inet.h>
 #include <errno.h>
-#include <fcntl.h>
-#include <libgen.h>
-#include <netdb.h>
-#include <resolv.h>
-#include <signal.h>
-#include <stdarg.h>
+#include <cstring>
+#include <vector>
+#include <time.h>
 
-int main(int argc, char *argv[]) {
-	int local_port;
-	pid_t pid;
+using namespace std;
 
-	bind_addr = NULL;
-	int server_sock, client_sock, remote_sock, remote_port = 0;
-	int connections_processed = 0;
-	char *bind_addr, *remote_host, *cmd_in, *cmd_out;
+int main(int argc, char* argv[])
+{
+	int sd;
+	char recvbuffer[1048576];
 
-	if (argc < 3) {
-		printf("Syntax:  [local_port][remote_host] -p [remote_port] \n", argv[0]);
-		return local_port;
+	if (argc != 4)
+	{
+		printf("Usage: client <proxy_server_ip> <proxy_server_port> <URL to retrieve>\n");
+		exit(1);
 	}
-	/* Create server socket */
-	int create_socket(int port) {
-		int server_sock, optval = 1;
-		struct sockaddr_in server_addr;
 
-		if ((server_sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-			return SERVER_SOCKET_ERROR;
-		}
-
-		if (setsockopt(server_sock, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval)) < 0) {
-			return SERVER_SETSOCKOPT_ERROR;
-		}
-
-
+	if ((sd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
+	{
+		printf("Client socket creation error\n");
 	}
+
+	struct sockaddr_in serverAddrInfo;
+	memset((char*)& serverAddrInfo, '0', sizeof(struct sockaddr_in));
+	serverAddrInfo.sin_family = AF_INET;
+	serverAddrInfo.sin_port = htons(atoi(argv[2]));
+	inet_pton(AF_INET, argv[1], &serverAddrInfo.sin_addr);
+
+	if (connect(sd, (struct sockaddr*)&serverAddrInfo, sizeof(serverAddrInfo)) == -1)
+	{
+		printf("Connection to server error\n");
+		exit(1);
+	}
+
+	printf("Connected successfully\n");
+	string url(argv[3]);
+	string message = "GET " + url + " HTTP/1.0\r\n\r\n";
+	cout << "Message sent: " << endl << message;
+	send(sd, message.c_str(), message.length(), 0);
+	int bytes = 0;
+	if ((bytes = recv(sd, recvbuffer, 1048576, 0)) <= 0)
+	{
+		printf("No data received from proxy, exiting.\n");
+		exit(1);
+	}
+	else
+	{
+		string recvd(recvbuffer, bytes);
+		cout << recvd << endl;
+	}
+	return 0;
+}
