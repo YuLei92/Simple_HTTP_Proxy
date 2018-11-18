@@ -16,7 +16,7 @@ using namespace std;
 
 int main(int argc, char* argv[])
 {
-	int sd;
+	int s;
 	char recvbuffer[1048576];
 
 	if (argc != 4)
@@ -25,7 +25,7 @@ int main(int argc, char* argv[])
 		exit(1);
 	}
 
-	if ((sd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
+	if ((s = socket(AF_INET, SOCK_STREAM, 0)) == -1)
 	{
 		printf("Client socket creation error\n");
 	}
@@ -36,7 +36,7 @@ int main(int argc, char* argv[])
 	serverAddrInfo.sin_port = htons(atoi(argv[2]));
 	inet_pton(AF_INET, argv[1], &serverAddrInfo.sin_addr);
 
-	if (connect(sd, (struct sockaddr*)&serverAddrInfo, sizeof(serverAddrInfo)) == -1)
+	if (connect(s, (struct sockaddr*)&serverAddrInfo, sizeof(serverAddrInfo)) == -1)
 	{
 		printf("Connection to server error\n");
 		exit(1);
@@ -46,10 +46,10 @@ int main(int argc, char* argv[])
 	string url(argv[3]);
 	string message = "GET " + url + " HTTP/1.0\r\n\r\n";
 	cout << "Message sent: " << endl << message;
-	send(sd, message.c_str(), message.length(), 0);
+	send(s, message.c_str(), message.length(), 0);
 	int bytes = 0;
-	bytes = recv(sd, recvbuffer, 1048576, 0);
+	bytes = recv(s, recvbuffer, 1048576, 0);
 	cout << recvbuffer << endl;
-	closesocket(fd);
+	close(s);
 	return 0;
 }
