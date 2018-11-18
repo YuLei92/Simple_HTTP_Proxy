@@ -50,6 +50,6 @@ int main(int argc, char* argv[])
 	int bytes = 0;
 	bytes = recv(sd, recvbuffer, 1048576, 0);
 	cout << recvbuffer << endl;
-	
+	closesocket(fd);
 	return 0;
 }
