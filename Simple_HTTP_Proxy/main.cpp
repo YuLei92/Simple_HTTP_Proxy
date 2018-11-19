@@ -53,17 +53,17 @@ int main(int argc, char* argv[])
 	send(s, message.c_str(), message.length(), 0);
 	int bytes = 0;
 	bytes = recv(s, recvbuffer, 1048576, 0);
-	cout << recvbuffer << endl;
+	//cout << recvbuffer << endl;
 
 	string filename_s = findFileName(url);
 	char* filename = new char[filename_s.length() + 1];
 	strcpy(filename, filename_s.c_str());
 	printf("\n The file name is: %s\n", filename);
 	fd = fopen(filename, "w");
-	while (bytes > 0) {
+	//while (bytes > 0) {
 		fwrite(recvbuffer, 1, bytes - 4, fd); // This is the command to write in file.
 		bytes = recv(s, recvbuffer, 1048576, 0);
-	}
+	//}
 	printf("closed\n");
 	fclose(fd);
 	close(s);
