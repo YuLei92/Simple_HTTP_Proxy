@@ -14,12 +14,13 @@
 #include <unistd.h>
 
 using namespace std;
+string findFileName(string);
 
 int main(int argc, char* argv[])
 {
 	int s;
 	char recvbuffer[1048576];
-
+	FILE *fd;
 	if (argc != 4)
 	{
 		printf("Usage: client <proxy_server_ip> <proxy_server_port> <URL to retrieve>\n");
@@ -43,14 +44,42 @@ int main(int argc, char* argv[])
 		exit(1);
 	}
 
+
 	printf("Connected successfully\n");
 	string url(argv[3]);
+
 	string message = "GET " + url + " HTTP/1.0\r\n\r\n";
 	cout << "Message sent: " << endl << message;
 	send(s, message.c_str(), message.length(), 0);
 	int bytes = 0;
 	bytes = recv(s, recvbuffer, 1048576, 0);
 	cout << recvbuffer << endl;
+
+	string filename_s = findFileName(url);
+	char* filename = new char[filename_s.length() + 1];
+	strcpy(filename, filename_s.c_str());
+	printf("\n The file name is: %s\n", filename);
+	fd = fopen(filename, "w");
+	while (bytes > 0) {
+		fwrite(recvbuffer, 1, bytes - 4, fd); // This is the command to write in file.
+		bytes = recv(s, recvbuffer, 1048576, 0);
+	}
+	printf("closed\n");
+	fclose(fd);
 	close(s);
 	return 0;
+}
+
+string findFileName(string url) {
+	int sign_index, sign_index_2;
+	string result;
+	sign_index = url.find("/");
+	if ((url.at(sign_index + 1)) == '/') {
+		sign_index_2 = url.substr(sign_index + 2, url.length() - 1).find('/');
+		result = url.substr(sign_index + sign_index_2 + 3, url.length() - 1);
+	}
+	else {
+		result = url.substr(sign_index + 1, url.length() - 1);
+	}
+	return result;
 }
