@@ -220,7 +220,14 @@ int main(int argc, char*argv[])
                         page = inCache(url);
                     }
                     string body = page->Body;
-                    send(i, body.c_str(), body.length(), 0);
+                    int send_target = body.length();
+                    int send_index = 0;
+                    int send_temp;
+                    while(send_target > 0){
+                      send_temp = send(i, body.c_str() + send_index, send_target, 0);
+                      send_target -= send_temp;
+                      send_index += send_temp;
+                    }
                     printCache();
                 }
             }
@@ -351,16 +358,17 @@ CacheNode* getPage(string url){
   }
   
   int recv_len = 0;
+  string body;
   char recvbuffer[1048576]; // We just recv 1MB documents.
-  if((recv_len = recv(http_socket, recvbuffer, 1048576, 0)) <= 0)
+  while((recv_len = recv(http_socket, recvbuffer, 1048576, 0)) > 1)
   {
-    perror("Simplex - talk : connect");
-    exit(0);
+    string recv_temp(recvbuffer, recv_len);
+    body += recv_temp;
   }
   
-  string recv_body(recvbuffer, recv_len);
-  printf("Receive the response: \n %s\n", recv_body.c_str());
-  CacheNode* node = createNode(DomainName, PagePath, recv_body);
+//  string recv_body(recvbuffer, recv_len);
+  printf("Receive the response: \n %s\n", body.c_str());
+  CacheNode* node = createNode(DomainName, PagePath, body);
   return node;
 }
 
